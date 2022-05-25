@@ -3,13 +3,44 @@ pragma solidity ^0.8.10;
 //import "contracts/IERC20.sol";
 
 interface IERC20 {
-    function transfer(address, uint) external returns (bool);
+    function totalSupply() external view returns (uint);
+
+    function balanceOf(address account) external view returns (uint);
+
+    function transfer(address recipient, uint amount) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint);
+
+    function approve(address spender, uint amount) external returns (bool);
 
     function transferFrom(
-        address,
-        address,
-        uint
+        address sender,
+        address recipient,
+        uint amount
     ) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
+}
+
+abstract contract ERC20 is IERC20 {
+    uint public totalSupply;
+    mapping(address => uint) public balanceOf;
+    mapping(address => mapping(address => uint)) public allowance;
+    uint8 public decimals = 18;
+
+    function transfer(address recipient, uint amount) external returns (bool) {
+        balanceOf[msg.sender] -= amount;
+        balanceOf[recipient] += amount;
+        emit Transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function mint(uint amount) external {
+        balanceOf[msg.sender] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0), msg.sender, amount);
+    }
 }
 
 
@@ -43,7 +74,7 @@ contract Crowd_Fund{
 
     constructor(address _token){
         token = IERC20(_token);
-    }
+   }
 
     function launch(
         uint _goal,
