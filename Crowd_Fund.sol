@@ -1,53 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
-//import "contracts/IERC20.sol";
-
-interface IERC20 {
-    function totalSupply() external view returns (uint);
-
-    function balanceOf(address account) external view returns (uint);
-
-    function transfer(address recipient, uint amount) external returns (bool);
-
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint amount) external returns (bool);
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint amount
-    ) external returns (bool);
-
-    event Transfer(address indexed from, address indexed to, uint value);
-    event Approval(address indexed owner, address indexed spender, uint value);
-}
-
-abstract contract ERC20 is IERC20 {
-    uint public totalSupply;
-    mapping(address => uint) public balanceOf;
-    mapping(address => mapping(address => uint)) public allowance;
-    uint8 public decimals = 18;
-
-    function approve(address spender, uint amount) external returns (bool) {
-        allowance[msg.sender][spender] = amount;
-        emit Approval(msg.sender, spender, amount);
-        return true;
-    }
-
-    function transfer(address recipient, uint amount) external returns (bool) {
-        balanceOf[msg.sender] -= amount;
-        balanceOf[recipient] += amount;
-        emit Transfer(msg.sender, recipient, amount);
-        return true;
-    }
-
-    function mint(uint amount) external {
-        balanceOf[msg.sender] += amount;
-        totalSupply += amount;
-        emit Transfer(address(0), msg.sender, amount);
-    }
-}
+import "contracts/IERC20.sol";
 
 
 contract Crowd_Fund{
@@ -116,7 +69,7 @@ contract Crowd_Fund{
     function pledge(uint _id, uint _amount) external{
         Campaign storage campaign = campaigns[_id];
         require(block.timestamp >= campaign.startAt, "Not Started");
-        require(block.timestamp >= campaign.endAt, "Ended");
+        require(block.timestamp <= campaign.endAt, "Cannot pledge, Ended");
 
         campaign.pledged += _amount;
         pledgedAmount[_id][msg.sender] += _amount;
@@ -150,7 +103,7 @@ contract Crowd_Fund{
     function refund(uint _id) external{
         Campaign storage campaign = campaigns[_id];
         require(block.timestamp > campaign.endAt, "Not Ended");
-        require(campaign.pledged < campaign.goal, "Pledged < Goal");
+        require(campaign.pledged < campaign.goal, "Pledged >= Goal");
         
         uint bal = pledgedAmount[_id][msg.sender];
         pledgedAmount[_id][msg.sender] = 0;
