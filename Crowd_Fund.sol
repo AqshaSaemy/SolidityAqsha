@@ -29,6 +29,12 @@ abstract contract ERC20 is IERC20 {
     mapping(address => mapping(address => uint)) public allowance;
     uint8 public decimals = 18;
 
+    function approve(address spender, uint amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
     function transfer(address recipient, uint amount) external returns (bool) {
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
